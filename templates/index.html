@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<div class="flex flex-col sm:flex-row sm:items-end justify-between gap-3 mb-6">
+ <div><p class="text-xs uppercase tracking-[.2em] text-sky-400 font-bold mb-2">Executive snapshot</p><h1 class="text-3xl font-black tracking-tight text-white">Class performance</h1><p class="muted mt-1 text-sm">An overview of marks, rankings, and subject-wise outcomes.</p></div>
+ <div class="text-xs muted">{{ summary.students }} student{{ '' if summary.students==1 else 's' }} analyzed · 5 subjects · 500 maximum marks</div>
+</div>
+<section class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
+ {% for label,value,sub,color in [
+ ('Students',summary.students,'Records in database','text-white'),
+ ('Class average',summary.class_average|string+'%','Mean percentage','text-sky-300'),
+ ('Top score',summary.top_score|string,summary.top_name,'text-emerald-300'),
+ ('Pass rate',summary.pass_rate|string+'%',summary.needs_support|string+' below 40%','text-violet-300')] %}
+ <article class="panel p-5 relative overflow-hidden"><div class="text-xs uppercase tracking-widest muted font-bold">{{ label }}</div><div class="text-3xl font-black mt-3 {{ color }}">{{ value }}</div><div class="text-xs muted mt-2">{{ sub }}</div></article>
+ {% endfor %}
+</section>
+<section class="grid lg:grid-cols-5 gap-4 mb-5">
+ <article class="panel p-5 lg:col-span-3"><div class="flex justify-between items-center mb-4"><div><h2 class="font-bold text-white">Subject averages</h2><p class="text-xs muted mt-1">Class mean out of 100</p></div><span class="text-xs text-violet-300">ANALYTICS</span></div><div class="h-64"><canvas id="subjectChart"></canvas></div></article>
+ <article class="panel p-5 lg:col-span-2"><div class="mb-4"><h2 class="font-bold text-white">Score distribution</h2><p class="text-xs muted mt-1">Students grouped by percentage</p></div><div class="h-64"><canvas id="distributionChart"></canvas></div></article>
+</section>
+<section class="panel overflow-hidden">
+ <div class="px-5 py-4 flex items-center justify-between gap-3"><div><h2 class="font-bold text-white">Student ranking</h2><p class="text-xs muted mt-1">Sorted by total marks, highest first</p></div><span class="text-xs px-2 py-1 rounded-md border border-slate-700 muted">{{ students|length }} records</span></div>
+ {% if students %}
+ <div class="overflow-x-auto"><table class="w-full min-w-[750px]"><thead><tr><th>Rank</th><th>Student</th><th>Student ID</th><th>Total / 500</th><th>Percentage</th><th>Grade</th><th>Actions</th></tr></thead><tbody>
+ {% for s in students %}<tr><td class="font-mono text-slate-400">#{{ loop.index }}</td><td><div class="font-semibold text-white">{{ s.name }}</div><div class="text-xs muted mt-1">{{ s.scores|length }} subjects</div></td><td class="font-mono text-sky-300">{{ s.student_code }}</td><td class="font-mono font-bold text-white">{{ s.total }}</td><td><div class="flex items-center gap-2"><div class="w-20 h-1.5 rounded-full bg-slate-800"><div class="h-1.5 rounded-full bg-sky-400" style="width:{{ s.percentage }}%"></div></div><span>{{ s.percentage }}%</span></div></td><td><span class="rounded-md px-2 py-1 text-xs border {{ 'text-emerald-300 border-emerald-900 bg-emerald-950/40' if s.percentage>=80 else 'text-sky-300 border-sky-900 bg-sky-950/40' if s.percentage>=60 else 'text-amber-300 border-amber-900 bg-amber-950/40' if s.percentage>=40 else 'text-rose-300 border-rose-900 bg-rose-950/40' }}">{{ s.grade }}</span></td><td><div class="flex items-center gap-3"><a class="text-sky-300 hover:text-sky-200" href="{{ url_for('student_analysis',student_id=s.id) }}">Analyze</a><a class="muted hover:text-white" href="{{ url_for('student_form',student_id=s.id) }}">Edit</a><form method="post" action="{{ url_for('student_delete',student_id=s.id) }}" onsubmit="return confirm('Delete this student record?')"><button class="text-rose-300 hover:text-rose-200" type="submit">Delete</button></form></div></td></tr>{% endfor %}
+ </tbody></table></div>
+ {% else %}<div class="px-5 pb-7 text-sm muted">No student records yet. Select <b class="text-sky-300">Add marks</b> to enter the first result.</div>{% endif %}
+</section>
+<script>
+const chartText='#94a3b8', grid='#1e293b';
+new Chart(document.getElementById('subjectChart'),{type:'bar',data:{labels:['Mathematics','Computer Sci.','Physics','English','DBMS'],datasets:[{label:'Average mark',data:[{{ subject_averages.mathematics }},{{ subject_averages.computer_science }},{{ subject_averages.physics }},{{ subject_averages.english }},{{ subject_averages.dbms }}],backgroundColor:['#38bdf8','#a78bfa','#34d399','#fbbf24','#818cf8'],borderRadius:7,maxBarThickness:42}]},options:{maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:chartText},grid:{display:false}},y:{beginAtZero:true,max:100,ticks:{color:chartText},grid:{color:grid}}}}});
+new Chart(document.getElementById('distributionChart'),{type:'doughnut',data:{labels:['0–19%','20–39%','40–59%','60–79%','80–100%'],datasets:[{data:{{ distribution|tojson }},backgroundColor:['#f87171','#fb923c','#fbbf24','#38bdf8','#34d399'],borderColor:'#0e1626',borderWidth:4}]},options:{maintainAspectRatio:false,cutout:'66%',plugins:{legend:{position:'bottom',labels:{color:chartText,padding:14,boxWidth:9,font:{size:10}}}}}});
+</script>
+{% endblock %}

@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}Student analysis{% endblock %}
+{% block content %}
+<a href="{{ url_for('dashboard') }}" class="text-sm text-sky-300">← Back to dashboard</a>
+<div class="mt-5 mb-6"><p class="text-xs uppercase tracking-[.2em] text-sky-400 font-bold mb-2">C++ analysis module</p><h1 class="text-3xl font-black text-white">{{ student.name }}</h1><p class="muted mt-1">Student ID <span class="font-mono text-sky-300">{{ student.student_code }}</span> · {{ student.grade }}</p></div>
+<div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
+{% for label,value in [('Total marks',analysis.total|string),('Minimum score',analysis.minimum|string),('Maximum score',analysis.maximum|string),('Average score',analysis.average|string)] %}<div class="panel p-5"><p class="text-xs uppercase tracking-widest muted font-bold">{{ label }}</p><p class="text-3xl font-black text-sky-300 mt-3">{{ value }}</p></div>{% endfor %}
+</div>
+<div class="grid lg:grid-cols-3 gap-4"><section class="panel p-5 lg:col-span-2"><h2 class="font-bold text-white mb-4">Subject score breakdown</h2><div class="space-y-4">{% for subject in subjects %}<div><div class="flex justify-between text-sm mb-2"><span>{{ subject }}</span><span class="font-mono text-sky-300">{{ student.scores[loop.index0] }}/100</span></div><div class="h-2 bg-slate-800 rounded-full overflow-hidden"><div class="h-full bg-sky-400 rounded-full" style="width:{{ student.scores[loop.index0] }}%"></div></div></div>{% endfor %}</div></section>
+<section class="panel p-5"><h2 class="font-bold text-white mb-2">Student ID digit frequency</h2><p class="text-xs muted mb-4">Calculated by the C++ backend</p>{% if analysis.digit_frequency %}<div class="grid grid-cols-3 gap-2">{% for digit,count in analysis.digit_frequency.items() %}<div class="rounded-lg border border-slate-800 bg-[#080d16] p-3 text-center"><div class="text-xl font-black text-sky-300">{{ digit }}</div><div class="text-xs muted mt-1">× {{ count }}</div></div>{% endfor %}</div>{% else %}<p class="text-sm muted">No digits found in this ID.</p>{% endif %}<div class="mt-5 border-t border-slate-800 pt-4 text-xs muted">The C++ executable receives the five marks and student ID from Flask and returns the computed statistics.</div></section></div>
+{% endblock %}

@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Edit marks' if student else 'Add marks' }}{% endblock %}
+{% block content %}
+<div class="max-w-3xl mx-auto"><a href="{{ url_for('dashboard') }}" class="text-sm text-sky-300">← Back to dashboard</a>
+<div class="mt-5 mb-6"><p class="text-xs uppercase tracking-[.2em] text-sky-400 font-bold mb-2">Student records</p><h1 class="text-3xl font-black text-white">{{ 'Edit student marks' if student else 'Add student marks' }}</h1><p class="muted mt-2 text-sm">Enter marks out of 100 for each of the five subjects.</p></div>
+<form method="post" class="panel p-6 space-y-5">
+<div class="grid sm:grid-cols-2 gap-4"><label class="text-sm font-semibold">Student ID<input class="field mt-2" name="student_code" required maxlength="30" placeholder="e.g. EQ1004" value="{{ student.student_code if student else '' }}"></label><label class="text-sm font-semibold">Student name<input class="field mt-2" name="name" required maxlength="100" placeholder="Full name" value="{{ student.name if student else '' }}"></label></div>
+<div class="border-t border-slate-800 pt-5"><h2 class="font-bold mb-4">Subject marks</h2><div class="grid sm:grid-cols-2 gap-4">{% for subject in subjects %}<label class="text-sm font-semibold">{{ subject }}<div class="relative mt-2"><input class="field pr-16" type="number" name="score{{ loop.index }}" min="0" max="100" required value="{{ student.scores[loop.index0] if student else '' }}" placeholder="0–100"><span class="absolute right-3 top-3 text-xs muted">/ 100</span></div></label>{% endfor %}</div></div>
+<div class="flex justify-end gap-3 pt-2"><a class="btn btn-secondary" href="{{ url_for('dashboard') }}">Cancel</a><button class="btn btn-primary" type="submit">Save marks</button></div>
+</form></div>
+{% endblock %}
